@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "639116869103",
+    "project_id": "myalarmapp-43665",
+    "storage_bucket": "myalarmapp-43665.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:639116869103:android:f4d8d8b60a24b2abb28a1a",
+        "android_client_info": {
+          "package_name": "com.example.alarmapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-f7Tv9Loq0G3hLxE29k36b-k2kXrO3qQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
