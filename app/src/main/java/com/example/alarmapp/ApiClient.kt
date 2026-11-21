@@ -32,6 +32,7 @@ object ApiClient {
             val code = conn.responseCode
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val text = stream?.bufferedReader()?.use { it.readText() } ?: ""
+            if (code == 401 && auth) throw UnauthorizedException()
             if (code !in 200..299) throw java.io.IOException("HTTP $code $text")
             return text
         } finally {
@@ -74,3 +75,6 @@ object ApiClient {
         )
     }
 }
+
+/** The server no longer recognises this phone (for example after a database reset). */
+class UnauthorizedException : java.io.IOException("Server no longer recognises this phone")

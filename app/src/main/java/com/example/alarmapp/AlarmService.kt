@@ -81,7 +81,8 @@ class AlarmService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_stat_alarm)
+            .setColor(0xFFFFB547.toInt())
             .setContentTitle(alarm.label.ifBlank { "Alarm" })
             .setContentText(alarm.timeLabel())
             .setCategory(NotificationCompat.CATEGORY_ALARM)

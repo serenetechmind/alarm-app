@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- soft glow -->
+    <path
+        android:fillColor="#33FFB547"
+        android:pathData="M54,56m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0" />
+    <!-- bells -->
+    <path
+        android:fillColor="#FFB547"
+        android:pathData="M34,36m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0" />
+    <path
+        android:fillColor="#FFB547"
+        android:pathData="M74,36m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0" />
+    <!-- clock face -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFB547"
+        android:strokeWidth="5"
+        android:pathData="M54,56m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0" />
+    <!-- hands -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFB547"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,43L54,56L63,62" />
+</vector>

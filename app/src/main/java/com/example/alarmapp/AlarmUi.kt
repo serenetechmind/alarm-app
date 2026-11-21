@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,13 +32,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
+private enum class Page { Home, Apps, Settings }
+
 @Composable
 fun AlarmApp() {
     val context = LocalContext.current
     val repo = remember { AlarmRepository(context) }
     var alarms by remember { mutableStateOf(repo.getAll()) }
     var editing by remember { mutableStateOf<Alarm?>(null) }
-    var showApps by remember { mutableStateOf(false) }
+    var page by remember { mutableStateOf(Page.Home) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var setup by remember { mutableStateOf(SetupChecks.missing(context)) }
 
@@ -59,8 +62,8 @@ fun AlarmApp() {
             setup = SetupChecks.missing(context)
         }
     }
-    BackHandler(enabled = editing != null || showApps) {
-        if (editing != null) editing = null else showApps = false
+    BackHandler(enabled = editing != null || page != Page.Home) {
+        if (editing != null) editing = null else page = Page.Home
     }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -76,20 +79,22 @@ fun AlarmApp() {
                     editing = null
                 },
             )
-            showApps -> Column(Modifier.fillMaxSize().systemBarsPadding()) {
+            page == Page.Apps -> Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 Row(Modifier.padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { showApps = false }) {
+                    IconButton(onClick = { page = Page.Home }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                     Text("Connected apps", fontSize = 24.sp, fontWeight = FontWeight.Light)
                 }
                 ConnectedAppsScreen(Modifier.weight(1f))
             }
+            page == Page.Settings -> SettingsScreen(onBack = { page = Page.Home })
             else -> AlarmHome(
                 alarms = alarms,
                 now = now,
                 setup = setup,
-                onOpenApps = { showApps = true },
+                onOpenApps = { page = Page.Apps },
+                onOpenSettings = { page = Page.Settings },
                 onNew = { editing = Alarm(id = 0, hour = 7, minute = 0) },
                 onEdit = { editing = it },
                 onToggle = { alarm, on ->
@@ -113,6 +118,7 @@ private fun AlarmHome(
     now: Long,
     setup: List<SetupItem>,
     onOpenApps: () -> Unit,
+    onOpenSettings: () -> Unit,
     onNew: () -> Unit,
     onEdit: (Alarm) -> Unit,
     onToggle: (Alarm, Boolean) -> Unit,
@@ -141,8 +147,10 @@ private fun AlarmHome(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Alarms", fontSize = 34.sp, fontWeight = FontWeight.Light)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    AppLogo(36.dp)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Alarms", fontSize = 30.sp, fontWeight = FontWeight.Light, modifier = Modifier.weight(1f))
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(50))
@@ -150,6 +158,9 @@ private fun AlarmHome(
                             .clickable(onClick = onOpenApps)
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) { Text("Connected apps", fontSize = 13.sp, color = scheme.primary) }
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = scheme.onSurfaceVariant)
+                    }
                 }
             }
             item { NextAlarmCard(alarms, now) }
@@ -188,15 +199,15 @@ private fun NextAlarmCard(alarms: List<Alarm>, now: Long) {
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(scheme.primaryContainer).padding(22.dp)
     ) {
-        Text("Next alarm", fontSize = 13.sp, color = scheme.primary.copy(alpha = 0.8f))
+        Text("Next alarm", fontSize = 13.sp, color = scheme.onPrimaryContainer.copy(alpha = 0.8f))
         Spacer(Modifier.height(6.dp))
         if (next != null) {
-            Text("Rings in ${formatCountdown(next.second - now)}", fontSize = 26.sp, fontWeight = FontWeight.Medium, color = scheme.primary)
+            Text("Rings in ${formatCountdown(next.second - now)}", fontSize = 26.sp, fontWeight = FontWeight.Medium, color = scheme.onPrimaryContainer)
             val (alarm, _) = next
             val tail = if (alarm.label.isNotBlank()) " · ${alarm.label}" else ""
-            Text("${alarm.hm()} ${alarm.ampm()}$tail", fontSize = 14.sp, color = scheme.onSurface.copy(alpha = 0.7f))
+            Text("${alarm.hm()} ${alarm.ampm()}$tail", fontSize = 14.sp, color = scheme.onPrimaryContainer.copy(alpha = 0.75f))
         } else {
-            Text("Nothing scheduled", fontSize = 22.sp, color = scheme.primary)
+            Text("Nothing scheduled", fontSize = 22.sp, color = scheme.onPrimaryContainer)
         }
     }
 }
@@ -257,7 +268,7 @@ private fun AlarmCard(alarm: Alarm, onClick: () -> Unit, onToggle: (Boolean) -> 
                 alarm.sourceApp?.let {
                     Spacer(Modifier.height(10.dp))
                     Box(Modifier.clip(RoundedCornerShape(50)).background(scheme.primaryContainer).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                        Text("via $it", fontSize = 12.sp, color = scheme.primary)
+                        Text("via $it", fontSize = 12.sp, color = scheme.onPrimaryContainer)
                     }
                 }
             }
@@ -282,7 +293,7 @@ private fun AlarmCard(alarm: Alarm, onClick: () -> Unit, onToggle: (Boolean) -> 
 }
 
 @Composable
-private fun Pill(text: String, selected: Boolean, onClick: () -> Unit) {
+fun Pill(text: String, selected: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Box(
         Modifier
@@ -291,7 +302,7 @@ private fun Pill(text: String, selected: Boolean, onClick: () -> Unit) {
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        Text(text, fontSize = 14.sp, color = if (selected) scheme.primary else scheme.onSurfaceVariant)
+        Text(text, fontSize = 14.sp, color = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant)
     }
 }
 

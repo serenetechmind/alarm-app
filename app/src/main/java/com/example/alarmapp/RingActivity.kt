@@ -57,7 +57,7 @@ class RingActivity : ComponentActivity() {
         )
 
         setContent {
-            AlarmTheme {
+            AlarmTheme(dark = true) {
                 RingScreen(
                     alarm = alarm,
                     onSnooze = { send(AlarmService.ACTION_SNOOZE) },

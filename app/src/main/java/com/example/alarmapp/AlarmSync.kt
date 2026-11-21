@@ -15,6 +15,15 @@ object AlarmSync {
 
     /** Blocking. Registers the phone if needed, then mirrors the server's alarm list. */
     fun fullSync(context: Context) {
+        try {
+            syncOnce(context)
+        } catch (e: UnauthorizedException) {
+            DeviceStore.clearRegistration(context) // register again with a fresh pair code
+            syncOnce(context)
+        }
+    }
+
+    private fun syncOnce(context: Context) {
         ApiClient.ensureRegistered(context)
         DeviceStore.fcmToken(context)?.let { ApiClient.updateFcmToken(context, it) }
 
