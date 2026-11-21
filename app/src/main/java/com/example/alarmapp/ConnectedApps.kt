@@ -53,6 +53,7 @@ fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
             fontSize = 44.sp,
             fontWeight = FontWeight.Medium,
             letterSpacing = 4.sp,
+            color = MaterialTheme.colorScheme.primary,
         )
         Text("Enter this code in the app you want to connect to your alarms.")
 
