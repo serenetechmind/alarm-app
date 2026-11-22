@@ -53,6 +53,7 @@ fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
             fontSize = 44.sp,
             fontWeight = FontWeight.Medium,
             letterSpacing = 4.sp,
+            color = MaterialTheme.colorScheme.primary,
         )
         Text("Enter this code in the app you want to connect to your alarms.")
 
@@ -70,6 +71,15 @@ fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
             pairCode = null
             load()
         }) { Text("Save server and reconnect") }
+
+        if (loading) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Contacting the server… the first request can take up to a minute on free hosting.",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         if (status.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))

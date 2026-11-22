@@ -66,8 +66,10 @@ class AlarmService : Service() {
 
     private fun createChannel() {
         val channel = NotificationChannel(CHANNEL_ID, "Alarms", NotificationManager.IMPORTANCE_HIGH)
-            .apply { setSound(null, null) } // the service plays the sound itself
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+            .apply { setSound(null, null); lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC } // the service plays the sound itself
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.deleteNotificationChannel("alarms")
+        nm.createNotificationChannel(channel)
     }
 
     private fun buildNotification(alarm: Alarm) = run {
@@ -79,12 +81,14 @@ class AlarmService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_stat_alarm)
+            .setColor(0xFFFFB547.toInt())
             .setContentTitle(alarm.label.ifBlank { "Alarm" })
             .setContentText(alarm.timeLabel())
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOngoing(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(fullScreen)
             .setFullScreenIntent(fullScreen, true)
             .addAction(0, "Snooze", serviceIntent(ACTION_SNOOZE, alarm.id))
@@ -140,7 +144,7 @@ class AlarmService : Service() {
         const val ACTION_SNOOZE = "com.example.alarmapp.SNOOZE"
         const val ACTION_DISMISS = "com.example.alarmapp.DISMISS"
         const val ACTION_STOPPED = "com.example.alarmapp.STOPPED"
-        private const val CHANNEL_ID = "alarms"
+        private const val CHANNEL_ID = "alarms_v2"
         private const val NOTIF_ID = 1
     }
 }

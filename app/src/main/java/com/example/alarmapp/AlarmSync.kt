@@ -14,7 +14,22 @@ object AlarmSync {
     const val SERVER_ID_OFFSET = 1_000_000
 
     /** Blocking. Registers the phone if needed, then mirrors the server's alarm list. */
+    private val syncLock = Any()
+
     fun fullSync(context: Context) {
+        // Several screens can ask for a sync at once; running them one at a time avoids duplicate
+        // registrations and a sync losing its token halfway through.
+        synchronized(syncLock) {
+            try {
+                syncOnce(context)
+            } catch (e: UnauthorizedException) {
+                DeviceStore.clearRegistration(context) // register again with a fresh pair code
+                syncOnce(context)
+            }
+        }
+    }
+
+    private fun syncOnce(context: Context) {
         ApiClient.ensureRegistered(context)
         DeviceStore.fcmToken(context)?.let { ApiClient.updateFcmToken(context, it) }
 

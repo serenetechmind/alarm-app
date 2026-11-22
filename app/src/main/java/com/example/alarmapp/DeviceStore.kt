@@ -19,6 +19,10 @@ object DeviceStore {
             .apply()
     }
 
+    fun clearRegistration(c: Context) {
+        prefs(c).edit().remove("device_token").remove("pair_code").apply()
+    }
+
     fun deviceToken(c: Context): String? = prefs(c).getString("device_token", null)
     fun pairCode(c: Context): String? = prefs(c).getString("pair_code", null)
 
