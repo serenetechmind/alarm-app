@@ -1,6 +1,7 @@
 package com.example.alarmapp
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ThemeStore.load(this)
+        ConnectRequests.handle(intent) // opened from a "Connect with AlarmApp" link or QR code
 
         if (Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -37,5 +39,11 @@ class MainActivity : ComponentActivity() {
             }
             AlarmTheme(dark) { AlarmApp() }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        ConnectRequests.handle(intent) // app was already open
     }
 }

@@ -55,7 +55,7 @@ fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
             letterSpacing = 4.sp,
             color = MaterialTheme.colorScheme.primary,
         )
-        Text("Enter this code in the app you want to connect to your alarms.")
+        Text("Most apps have a Connect button, so you usually won't need this. If one asks for a code, enter this.")
 
         Spacer(Modifier.height(24.dp))
         OutlinedTextField(

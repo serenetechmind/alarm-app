@@ -62,13 +62,17 @@ fun AlarmApp() {
             setup = SetupChecks.missing(context)
         }
     }
-    BackHandler(enabled = editing != null || page != Page.Home) {
-        if (editing != null) editing = null else page = Page.Home
+    BackHandler(enabled = ConnectRequests.pendingId != null || editing != null || page != Page.Home) {
+        if (ConnectRequests.pendingId != null) ConnectRequests.pendingId = null
+        else if (editing != null) editing = null
+        else page = Page.Home
     }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val current = editing
+        val pending = ConnectRequests.pendingId
         when {
+            pending != null -> ConnectConsentScreen(requestId = pending, onClose = { ConnectRequests.pendingId = null })
             current != null -> AlarmEditorScreen(
                 initial = current,
                 onClose = { editing = null },

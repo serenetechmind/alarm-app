@@ -47,6 +47,7 @@ object ApiClient {
         return (0 until arr.length()).map { arr.getJSONObject(it) }
     }
 
+    @Synchronized
     fun ensureRegistered(context: Context) {
         if (DeviceStore.deviceToken(context) != null) return
         val body = JSONObject()
@@ -55,6 +56,27 @@ object ApiClient {
         val res = JSONObject(request(context, "POST", "/v1/device/register", body, auth = false))
         DeviceStore.saveRegistration(context, res.getString("device_token"), res.getString("pair_code"))
     }
+
+    /** Makes sure the phone is registered, and registers again if the server forgot it. */
+    private fun <T> withRegistration(context: Context, block: () -> T): T {
+        ensureRegistered(context)
+        return try {
+            block()
+        } catch (e: UnauthorizedException) {
+            DeviceStore.clearRegistration(context)
+            ensureRegistered(context)
+            block()
+        }
+    }
+
+    fun fetchConnectRequest(context: Context, requestId: String): JSONObject =
+        withRegistration(context) { JSONObject(request(context, "GET", "/v1/device/connect/$requestId")) }
+
+    fun respondConnect(context: Context, requestId: String, approve: Boolean): JSONObject =
+        withRegistration(context) {
+            val action = if (approve) "approve" else "deny"
+            JSONObject(request(context, "POST", "/v1/device/connect/$requestId/$action", JSONObject()))
+        }
 
     fun updateFcmToken(context: Context, token: String) {
         request(context, "PUT", "/v1/device/fcm-token", JSONObject().put("fcm_token", token))

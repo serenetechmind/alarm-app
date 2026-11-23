@@ -17,8 +17,8 @@ android {
         applicationId = "com.example.alarmapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.4.1"
+        versionCode = 6
+        versionName = "0.5.0"
         // 10.0.2.2 reaches your computer from the emulator. On a real phone, change it
         // in the app (Connected apps screen) to your computer's Wi-Fi IP.
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
