@@ -19,6 +19,16 @@ object DeviceStore {
             .apply()
     }
 
+    fun devMode(c: Context): Boolean = prefs(c).getBoolean("dev_mode", false)
+    fun setDevMode(c: Context, on: Boolean) {
+        prefs(c).edit().putBoolean("dev_mode", on).apply()
+    }
+
+    /** Back to the server built into the app. */
+    fun resetServerUrl(c: Context) {
+        prefs(c).edit().remove("server_url").remove("device_token").remove("pair_code").apply()
+    }
+
     fun clearRegistration(c: Context) {
         prefs(c).edit().remove("device_token").remove("pair_code").apply()
     }

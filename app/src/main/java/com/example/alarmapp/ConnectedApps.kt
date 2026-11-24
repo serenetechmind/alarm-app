@@ -19,10 +19,10 @@ import kotlinx.coroutines.withContext
 fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val scheme = MaterialTheme.colorScheme
 
     var pairCode by remember { mutableStateOf(DeviceStore.pairCode(context)) }
     var connections by remember { mutableStateOf<List<Pair<Int, String>>>(emptyList()) }
-    var serverUrl by remember { mutableStateOf(DeviceStore.serverUrl(context)) }
     var status by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
 
@@ -47,52 +47,29 @@ fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) { load() }
 
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
-        Text("Your pair code", style = MaterialTheme.typography.labelLarge)
-        Text(
-            pairCode?.chunked(3)?.joinToString(" ") ?: "— — —",
-            fontSize = 44.sp,
-            fontWeight = FontWeight.Medium,
-            letterSpacing = 4.sp,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text("Most apps have a Connect button, so you usually won't need this. If one asks for a code, enter this.")
-
-        Spacer(Modifier.height(24.dp))
-        OutlinedTextField(
-            value = serverUrl,
-            onValueChange = { serverUrl = it },
-            label = { Text("Server URL") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = {
-            DeviceStore.setServerUrl(context, serverUrl)
-            pairCode = null
-            load()
-        }) { Text("Save server and reconnect") }
-
-        if (loading) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Contacting the server… the first request can take up to a minute on free hosting.",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        if (status.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Text(status, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(Modifier.height(24.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Connected apps", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Text("Apps allowed to set alarms", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             TextButton(onClick = { load() }, enabled = !loading) { Text(if (loading) "Loading…" else "Refresh") }
         }
+
+        if (loading) {
+            Text(
+                "Contacting the server… the first request can take up to a minute.",
+                fontSize = 13.sp,
+                color = scheme.onSurfaceVariant,
+            )
+        }
+        if (status.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(status, color = scheme.error)
+        }
+
+        Spacer(Modifier.height(8.dp))
         if (connections.isEmpty()) {
-            Text("No apps connected yet.")
+            Text(
+                "No apps connected yet. Tap \"Connect with AlarmApp\" inside an app, then approve it here.",
+                color = scheme.onSurfaceVariant,
+            )
         } else {
             connections.forEach { (id, name) ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -105,13 +82,28 @@ fun ConnectedAppsScreen(modifier: Modifier = Modifier) {
                                     AlarmSync.fullSync(context) // removes that app's alarms locally
                                 }
                             } catch (e: Exception) {
-                                status = "Couldn't revoke: ${e.message}"
+                                status = "Couldn't disconnect: ${e.message}"
                             }
                             load()
                         }
-                    }) { Text("Revoke") }
+                    }) { Text("Disconnect") }
                 }
             }
         }
+
+        Spacer(Modifier.height(36.dp))
+        Text("Pair code", style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant)
+        Text(
+            pairCode?.chunked(3)?.joinToString(" ") ?: "— — —",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Medium,
+            letterSpacing = 4.sp,
+            color = scheme.primary,
+        )
+        Text(
+            "Most apps have a Connect button, so you usually won't need this. If one asks for a code, enter this.",
+            fontSize = 13.sp,
+            color = scheme.onSurfaceVariant,
+        )
     }
 }

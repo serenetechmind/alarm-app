@@ -12,7 +12,8 @@ Build with GitHub Actions (or Android Studio): push to `main`, then download the
 Connected apps -> Server URL -> your server address (https://... once deployed) -> Save.
 See the backend's DEPLOY.md.
 
-## Dev-only settings to change before release
-- `android:usesCleartextTraffic="true"` in the manifest (use https instead).
-- The default `API_BASE_URL` in `app/build.gradle.kts`.
+## Settings to review before release
+- `API_BASE_URL` in `app/build.gradle.kts` is the server every user's app talks to (users never enter it).
+- Debug builds allow http:// addresses (src/debug manifest); release builds are https only.
+- To point a test phone at another server: Settings -> tap Version 7 times -> Developer options.
 - The placeholder package name `com.example.alarmapp`.

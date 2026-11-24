@@ -17,11 +17,10 @@ android {
         applicationId = "com.example.alarmapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.5.0"
-        // 10.0.2.2 reaches your computer from the emulator. On a real phone, change it
-        // in the app (Connected apps screen) to your computer's Wi-Fi IP.
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
+        versionCode = 7
+        versionName = "0.5.1"
+        // The server every user's app talks to. Change it here if your server address changes.
+        buildConfigField("String", "API_BASE_URL", "\"https://myalarmapp.onrender.com\"")
     }
 
     buildTypes {

@@ -1,6 +1,8 @@
 package com.example.alarmapp
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +27,11 @@ fun SettingsScreen(onBack: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val firebaseReady = remember { runCatching { FirebaseApp.getApps(context).isNotEmpty() }.getOrDefault(false) }
     var token by remember { mutableStateOf(DeviceStore.fcmToken(context)) }
+    var devMode by remember { mutableStateOf(DeviceStore.devMode(context)) }
+    var taps by remember { mutableIntStateOf(0) }
+    var serverUrl by remember { mutableStateOf(DeviceStore.serverUrl(context)) }
+    var note by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
         while (true) {
             token = DeviceStore.fcmToken(context)
@@ -81,8 +88,48 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Spacer(Modifier.width(14.dp))
                 Column {
                     Text("AlarmApp", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                    Text("Version ${BuildConfig.VERSION_NAME}", fontSize = 13.sp, color = scheme.onSurfaceVariant)
+                    // Tap the version 7 times to show or hide developer options.
+                    Text(
+                        "Version ${BuildConfig.VERSION_NAME}",
+                        fontSize = 13.sp,
+                        color = scheme.onSurfaceVariant,
+                        modifier = Modifier.clickable {
+                            taps++
+                            if (taps >= 7) {
+                                taps = 0
+                                devMode = !devMode
+                                DeviceStore.setDevMode(context, devMode)
+                                Toast.makeText(context, if (devMode) "Developer options on" else "Developer options off", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                    )
                 }
+            }
+
+            if (devMode) {
+                Spacer(Modifier.height(32.dp))
+                Text("Developer options", fontSize = 14.sp, color = scheme.onSurfaceVariant)
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = serverUrl,
+                    onValueChange = { serverUrl = it },
+                    label = { Text("Server URL") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = {
+                        DeviceStore.setServerUrl(context, serverUrl)
+                        note = "Saved. The app registers with this server next time it syncs."
+                    }) { Text("Save") }
+                    TextButton(onClick = {
+                        DeviceStore.resetServerUrl(context)
+                        serverUrl = DeviceStore.serverUrl(context)
+                        note = "Back to the default server."
+                    }) { Text("Reset to default") }
+                }
+                if (note.isNotEmpty()) Text(note, fontSize = 12.sp, color = scheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(40.dp))
         }
