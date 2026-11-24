@@ -82,6 +82,12 @@ object ApiClient {
         request(context, "PUT", "/v1/device/fcm-token", JSONObject().put("fcm_token", token))
     }
 
+    fun fetchTodos(context: Context): JSONObject = JSONObject(request(context, "GET", "/v1/device/todos"))
+
+    fun sendTaskDone(context: Context, serverTaskId: Int, done: Boolean) {
+        request(context, "POST", "/v1/device/tasks/$serverTaskId/done", JSONObject().put("done", done))
+    }
+
     fun fetchAlarms(context: Context): List<JSONObject> =
         objects(request(context, "GET", "/v1/device/alarms"))
 

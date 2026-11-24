@@ -33,6 +33,14 @@ object AlarmSync {
         ApiClient.ensureRegistered(context)
         DeviceStore.fcmToken(context)?.let { ApiClient.updateFcmToken(context, it) }
 
+        try {
+            TodoSync.sync(context)
+        } catch (e: UnauthorizedException) {
+            throw e
+        } catch (e: Exception) {
+            // to-do sync failing must not stop alarms from syncing
+        }
+
         val remote = ApiClient.fetchAlarms(context)
         val remoteIds = remote.map { SERVER_ID_OFFSET + it.getInt("id") }.toSet()
         val repo = AlarmRepository(context)
@@ -62,6 +70,8 @@ object AlarmSync {
             enabled = o.getBoolean("enabled"),
             snoozeMinutes = o.optInt("snooze_minutes", 10),
             sourceApp = o.optString("source_app").ifBlank { null },
+            categoryId = if (o.isNull("category_id")) null else SERVER_ID_OFFSET + o.getInt("category_id"),
+            taskId = if (o.isNull("task_id")) null else SERVER_ID_OFFSET + o.getInt("task_id"),
         )
 
         // A one-time alarm that already rang stays off locally until its time is changed,

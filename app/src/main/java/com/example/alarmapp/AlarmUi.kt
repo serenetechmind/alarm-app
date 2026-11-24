@@ -32,7 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-private enum class Page { Home, Apps, Settings }
+private enum class Page { Home, Todo, Apps, Settings }
 
 @Composable
 fun AlarmApp() {
@@ -93,12 +93,25 @@ fun AlarmApp() {
                 ConnectedAppsScreen(Modifier.weight(1f))
             }
             page == Page.Settings -> SettingsScreen(onBack = { page = Page.Home })
+            page == Page.Todo -> TodoHome(
+                onOpenAlarms = { page = Page.Home },
+                onOpenSettings = { page = Page.Settings },
+                onAlarmFor = { cat, task ->
+                    editing = Alarm(
+                        id = 0, hour = 7, minute = 0,
+                        label = task?.title ?: cat.name,
+                        categoryId = cat.id,
+                        taskId = task?.id,
+                    )
+                },
+            )
             else -> AlarmHome(
                 alarms = alarms,
                 now = now,
                 setup = setup,
                 onOpenApps = { page = Page.Apps },
                 onOpenSettings = { page = Page.Settings },
+                onOpenTodo = { page = Page.Todo },
                 onNew = { editing = Alarm(id = 0, hour = 7, minute = 0) },
                 onEdit = { editing = it },
                 onToggle = { alarm, on ->
@@ -123,6 +136,7 @@ private fun AlarmHome(
     setup: List<SetupItem>,
     onOpenApps: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenTodo: () -> Unit,
     onNew: () -> Unit,
     onEdit: (Alarm) -> Unit,
     onToggle: (Alarm, Boolean) -> Unit,
@@ -167,6 +181,7 @@ private fun AlarmHome(
                     }
                 }
             }
+            item { HomeTabs(todoSelected = false, onAlarms = {}, onTodo = onOpenTodo) }
             item { NextAlarmCard(alarms, now) }
             if (setup.isNotEmpty()) item { SetupCard(setup) }
             if (alarms.isEmpty()) {
@@ -238,6 +253,7 @@ private fun SetupCard(items: List<SetupItem>) {
 @Composable
 private fun AlarmCard(alarm: Alarm, onClick: () -> Unit, onToggle: (Boolean) -> Unit, onDelete: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
     Box(
         Modifier
             .fillMaxWidth()
@@ -267,6 +283,13 @@ private fun AlarmCard(alarm: Alarm, onClick: () -> Unit, onToggle: (Boolean) -> 
                                 color = if (on) scheme.primary else scheme.onSurfaceVariant.copy(alpha = 0.35f),
                             )
                         }
+                    }
+                }
+                alarm.categoryId?.let { id ->
+                    val listName = remember(id) { TodoRepository(context).category(id)?.name }
+                    if (listName != null) {
+                        Spacer(Modifier.height(6.dp))
+                        Text("Shows list: $listName", fontSize = 12.sp, color = scheme.onSurfaceVariant)
                     }
                 }
                 alarm.sourceApp?.let {
@@ -319,6 +342,9 @@ fun AlarmEditorScreen(initial: Alarm, onClose: () -> Unit, onSave: (Alarm) -> Un
     var days by remember { mutableStateOf(initial.repeatDays) }
     var label by remember { mutableStateOf(initial.label) }
     var snooze by remember { mutableIntStateOf(initial.snoozeMinutes) }
+    var categoryId by remember { mutableStateOf(initial.categoryId) }
+    val context = LocalContext.current
+    val todoCategories = remember { TodoRepository(context).categories() }
 
     val hour24 = (h12 % 12) + if (pm) 12 else 0
     val preview = AlarmScheduler.nextTrigger(Alarm(0, hour24, minute, days))
@@ -335,7 +361,13 @@ fun AlarmEditorScreen(initial: Alarm, onClose: () -> Unit, onSave: (Alarm) -> Un
             TextButton(onClick = onClose) { Text("Cancel", color = scheme.onSurfaceVariant) }
             Button(
                 onClick = {
-                    onSave(initial.copy(hour = hour24, minute = minute, repeatDays = days, label = label.trim(), snoozeMinutes = snooze))
+                    onSave(
+                        initial.copy(
+                            hour = hour24, minute = minute, repeatDays = days, label = label.trim(), snoozeMinutes = snooze,
+                            categoryId = categoryId,
+                            taskId = if (categoryId == initial.categoryId) initial.taskId else null,
+                        )
+                    )
                 },
                 shape = RoundedCornerShape(50),
             ) { Text("Save", fontWeight = FontWeight.Medium) }
@@ -378,6 +410,16 @@ fun AlarmEditorScreen(initial: Alarm, onClose: () -> Unit, onSave: (Alarm) -> Un
             Pill("Weekdays", days == setOf(2, 3, 4, 5, 6)) { days = setOf(2, 3, 4, 5, 6) }
             Pill("Weekends", days == setOf(1, 7)) { days = setOf(1, 7) }
             Pill("Every day", days.size == 7) { days = (1..7).toSet() }
+        }
+
+        if (todoCategories.isNotEmpty() || categoryId != null) {
+            Spacer(Modifier.height(24.dp))
+            Text("Show a to-do category when it rings", fontSize = 14.sp, color = scheme.onSurfaceVariant)
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Pill("None", categoryId == null) { categoryId = null }
+                todoCategories.forEach { c -> Pill(c.name, categoryId == c.id) { categoryId = c.id } }
+            }
         }
 
         Spacer(Modifier.height(24.dp))

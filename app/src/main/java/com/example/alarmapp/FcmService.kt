@@ -22,6 +22,10 @@ class FcmService : FirebaseMessagingService() {
         when (message.data["type"]) {
             "alarm.upsert" -> AlarmSync.upsert(this, payload)
             "alarm.delete" -> AlarmSync.delete(this, payload.getInt("id"))
+            "category.upsert" -> TodoSync.upsertCategory(this, payload)
+            "category.delete" -> TodoSync.deleteCategoryLocal(this, AlarmSync.SERVER_ID_OFFSET + payload.getInt("id"))
+            "task.upsert" -> TodoSync.upsertTask(this, payload)
+            "task.delete" -> TodoSync.deleteTaskLocal(this, AlarmSync.SERVER_ID_OFFSET + payload.getInt("id"))
         }
     }
 }

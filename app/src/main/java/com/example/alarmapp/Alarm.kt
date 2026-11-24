@@ -16,6 +16,8 @@ data class Alarm(
     val enabled: Boolean = true,
     val snoozeMinutes: Int = 10,
     val sourceApp: String? = null, // set when the alarm was created through the API
+    val categoryId: Int? = null, // to-do category shown when this alarm rings
+    val taskId: Int? = null, // the task this alarm is for (highlighted on the ring screen)
 ) {
     fun timeLabel(): String {
         val h12 = if (hour % 12 == 0) 12 else hour % 12
@@ -38,6 +40,8 @@ data class Alarm(
         put("enabled", enabled)
         put("snoozeMinutes", snoozeMinutes)
         put("sourceApp", sourceApp ?: JSONObject.NULL)
+        put("categoryId", categoryId ?: JSONObject.NULL)
+        put("taskId", taskId ?: JSONObject.NULL)
     }
 
     companion object {
@@ -52,6 +56,8 @@ data class Alarm(
                 enabled = o.getBoolean("enabled"),
                 snoozeMinutes = o.getInt("snoozeMinutes"),
                 sourceApp = if (o.isNull("sourceApp")) null else o.getString("sourceApp"),
+                categoryId = if (o.isNull("categoryId")) null else o.getInt("categoryId"),
+                taskId = if (o.isNull("taskId")) null else o.getInt("taskId"),
             )
         }
     }

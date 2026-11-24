@@ -17,8 +17,8 @@ android {
         applicationId = "com.example.alarmapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.5.1"
+        versionCode = 8
+        versionName = "0.6.0"
         // The server every user's app talks to. Change it here if your server address changes.
         buildConfigField("String", "API_BASE_URL", "\"https://myalarmapp.onrender.com\"")
     }
